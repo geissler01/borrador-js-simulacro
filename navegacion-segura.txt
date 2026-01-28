@@ -1,0 +1,248 @@
+Perfecto 🔥
+Te voy a **simular un flujo REAL**, con **estructura mínima**, **roles**, **validaciones por página** y **código justo y necesario** para que:
+
+* el login decida a dónde ir
+* la sesión se mantenga
+* no puedas navegar sin permiso
+* no puedas “colarte” cambiando la URL
+
+👉 Todo **solo frontend**, bien pensado y ordenado.
+
+---
+
+# 🧩 ESTRUCTURA DEL PROYECTO
+
+```
+/project
+│
+├── login.html
+├── home.html        (usuario normal)
+├── admin.html       (administrador)
+│
+├── login.js
+├── guard.js
+├── logout.js
+```
+
+---
+
+# 1️⃣ LOGIN — Validación y creación de sesión
+
+## 🧠 Regla
+
+* Si email/password coinciden → guardo sesión
+* Según rol → redirijo
+
+---
+
+### 📄 `login.html`
+
+```html
+<form id="loginForm">
+  <input type="email" id="email" required />
+  <input type="password" id="password" required />
+  <button type="submit">Login</button>
+</form>
+
+<script src="login.js"></script>
+```
+
+---
+
+### 📄 `login.js`
+
+```js
+const form = document.getElementById("loginForm");
+
+// usuarios simulados
+const users = [
+  { email: "user@mail.com", password: "123", role: "user" },
+  { email: "admin@mail.com", password: "123", role: "admin" }
+];
+
+// si ya está logueado, no puede ver login
+const isAuth = localStorage.getItem("isAuth");
+const role = localStorage.getItem("role");
+
+if (isAuth) {
+  window.location.href = role === "admin" ? "admin.html" : "home.html";
+}
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const user = users.find(
+    u => u.email === email && u.password === password
+  );
+
+  if (!user) {
+    alert("Credenciales incorrectas");
+    return;
+  }
+
+  // crear sesión
+  localStorage.setItem("isAuth", "true");
+  localStorage.setItem("role", user.role);
+  localStorage.setItem("currentUser", user.email);
+
+  // redirección por rol
+  window.location.href =
+    user.role === "admin" ? "admin.html" : "home.html";
+});
+```
+
+---
+
+# 2️⃣ GUARD — Protección de páginas
+
+👉 **Este archivo es la clave de todo**
+
+---
+
+### 📄 `guard.js`
+
+```js
+const isAuth = localStorage.getItem("isAuth");
+const role = localStorage.getItem("role");
+
+// cada página define qué rol necesita
+if (!isAuth) {
+  window.location.href = "login.html";
+}
+
+if (typeof REQUIRED_ROLE !== "undefined" && role !== REQUIRED_ROLE) {
+  window.location.href = "login.html";
+}
+```
+
+---
+
+# 3️⃣ HOME — Usuario normal
+
+## 🧠 Reglas
+
+* Solo entra si está autenticado
+* NO puede ser admin
+
+---
+
+### 📄 `home.html`
+
+```html
+<h1>Home Usuario</h1>
+<button onclick="logout()">Logout</button>
+
+<script>
+  const REQUIRED_ROLE = "user";
+</script>
+<script src="guard.js"></script>
+<script src="logout.js"></script>
+```
+
+---
+
+# 4️⃣ ADMIN — Administrador
+
+## 🧠 Reglas
+
+* Solo entra si está autenticado
+* Rol obligatorio: admin
+
+---
+
+### 📄 `admin.html`
+
+```html
+<h1>Panel Admin</h1>
+<button onclick="logout()">Logout</button>
+
+<script>
+  const REQUIRED_ROLE = "admin";
+</script>
+<script src="guard.js"></script>
+<script src="logout.js"></script>
+```
+
+---
+
+# 5️⃣ LOGOUT — Cerrar sesión correctamente
+
+---
+
+### 📄 `logout.js`
+
+```js
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+```
+
+---
+
+# 6️⃣ FLUJO REAL COMPLETO (mental)
+
+```
+LOGIN
+  ↓
+Validación de credenciales
+  ↓
+Guardar sesión en localStorage
+  ↓
+Redirección según rol
+  ↓
+Página protegida valida permisos
+  ↓
+Usuario navega
+  ↓
+Logout → borrar localStorage
+  ↓
+Vuelve al login
+```
+
+---
+
+# 7️⃣ PRUEBAS DE SEGURIDAD (importantes)
+
+### ❌ Intentar ir a admin sin login
+
+➡️ rebote al login
+
+### ❌ Usuario normal escribe /admin.html
+
+➡️ rebote al login
+
+### ❌ Admin escribe /home.html
+
+➡️ rebote al login
+
+### ❌ Login estando autenticado
+
+➡️ redirección automática
+
+---
+
+# 8️⃣ Qué aprendiste realmente aquí 🎯
+
+* `localStorage` = estado global del proyecto
+* Solo existe **una sesión activa**
+* La seguridad está en:
+
+  * validar **al cargar cada página**
+  * no en bloquear URLs
+* El rol define **a dónde puedes entrar**
+* El logout **siempre limpia todo**
+
+---
+
+Si quieres, el siguiente nivel puede ser:
+
+* refactorizar esto en **un solo auth.js**
+* agregar expiración de sesión
+* simular JWT
+* o migrar esta lógica a backend real
+
+Pero **este flujo está correcto, limpio y bien diseñado** 👌

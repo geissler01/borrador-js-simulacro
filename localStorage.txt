@@ -1,0 +1,252 @@
+Perfecto 👍
+Te dejo **UNA NOTA ÚNICA**, clara, ordenada y pensada **para consultar offline**.
+No es código-centrada, es **conceptual + práctica**, justo para fijar bien la idea.
+
+---
+
+# 📝 NOTA — Sesión, localStorage y control de navegación en Frontend
+
+## 1️⃣ ¿Qué significa “mantener la sesión activa” en frontend?
+
+En frontend, **mantener la sesión activa** significa:
+
+> Guardar un estado de autenticación (login) en algún lugar persistente
+> y **verificar ese estado cada vez que se carga una página**.
+
+En este caso, ese lugar es **`localStorage`**.
+
+---
+
+## 2️⃣ ¿Qué es `localStorage` y por qué sirve para sesiones?
+
+* `localStorage` es un almacenamiento del navegador
+* **No se borra al cerrar pestañas ni el navegador**
+* Solo se borra si:
+
+  * el usuario limpia datos
+  * o tú lo borras con JavaScript
+
+👉 Por eso sirve para **simular una sesión persistente**.
+
+Ejemplo de información típica que se guarda:
+
+* `isAuth: true`
+* `role: admin | user`
+* `currentUser: email`
+
+---
+
+## 3️⃣ ¿El `localStorage` es el mismo para todas las páginas del proyecto?
+
+### ✅ **Sí, pero con una condición muy importante**
+
+El `localStorage` es **compartido por TODAS las páginas** que tengan:
+
+```
+mismo dominio + mismo protocolo + mismo puerto
+```
+
+Ejemplo:
+
+* `login.html`
+* `home.html`
+* `admin.html`
+
+Si están en:
+
+```
+http://localhost:5500/
+```
+
+👉 **TODAS ven el mismo `localStorage`**
+
+---
+
+### 📌 Consecuencia clave (MUY importante)
+
+> Si guardas algo en el login,
+> **lo verás exactamente igual en la landing y en admin**.
+
+No hay “un localStorage por página”.
+Hay **UNO solo por proyecto (origen)**.
+
+---
+
+## 4️⃣ ¿Puede haber dos usuarios logueados a la vez?
+
+### ❌ NO, y esto es correcto que sea así
+
+En un proyecto frontend con `localStorage`:
+
+* Solo existe **UNA sesión activa**
+* Solo existe **UN usuario actual**
+
+¿Por qué?
+
+Porque:
+
+* `localStorage` es único
+* Las claves se sobrescriben
+
+Ejemplo:
+
+```text
+isAuth = true
+role = admin
+```
+
+Si intentaras “guardar otro usuario”:
+
+* Sobrescribes los valores
+* El sistema ya no sabría a quién validar
+
+👉 **Eso es normal y esperado**.
+
+---
+
+## 5️⃣ Entonces… ¿por qué es importante borrar el `localStorage` al salir?
+
+Porque si NO lo borras:
+
+* El navegador seguirá creyendo que el usuario está autenticado
+* Al recargar o volver al sitio:
+
+  * la validación lo dejará pasar automáticamente
+
+Por eso el **logout correcto** es:
+
+> Borrar la información de sesión
+> y redirigir al login
+
+Conceptualmente:
+
+```
+Cerrar sesión = eliminar estado de autenticación
+```
+
+---
+
+## 6️⃣ ¿Cómo funciona realmente la validación de páginas?
+
+### 🔑 Idea clave (esto es lo más importante de todo):
+
+> **No se bloquea la URL**
+> **Se valida AL CARGAR la página**
+
+Cada página “protegida” hace esto:
+
+1. Se carga
+2. Lee `localStorage`
+3. Decide:
+
+   * ❌ no autorizado → redirige
+   * ✅ autorizado → se queda
+
+---
+
+## 7️⃣ Control de navegación entre páginas (roles)
+
+Ejemplo conceptual:
+
+### Login
+
+* Valida credenciales
+* Guarda:
+
+  * `isAuth = true`
+  * `role = admin | user`
+* Redirige según rol
+
+---
+
+### Página Admin
+
+* Revisa:
+
+  * ¿está autenticado?
+  * ¿el rol es admin?
+* Si no → rebote
+
+---
+
+### Página Landing
+
+* Revisa:
+
+  * ¿está autenticado?
+* Si no → rebote
+
+---
+
+### Página Login
+
+* Revisa:
+
+  * ¿ya está autenticado?
+* Si sí:
+
+  * redirige según rol
+  * no permite volver al login
+
+---
+
+## 8️⃣ ¿Por qué no se puede “ir a cualquier página escribiendo la URL”?
+
+En realidad **sí se puede escribir la URL**, PERO:
+
+👉 **la página se protege sola al cargar**
+
+Es como un guardia en la puerta:
+
+* Entras
+* Te revisa
+* Si no tienes permiso → te saca
+
+---
+
+## 9️⃣ Limitación importante (honestidad técnica)
+
+Este sistema:
+
+✅ Sirve para:
+
+* proyectos frontend
+* portfolios
+* prácticas
+* demos
+
+❌ NO sirve para:
+
+* seguridad real
+* datos sensibles
+* producción seria
+
+¿Por qué?
+
+* El usuario puede editar `localStorage` desde DevTools
+
+👉 La seguridad real **siempre va en el backend**.
+
+---
+
+## 10️⃣ Resumen mental final 🧠
+
+* `localStorage` es **uno solo** para todo el proyecto
+* Todas las páginas ven la misma información
+* Solo puede haber **una sesión activa**
+* La sesión:
+
+  * se crea al login
+  * se usa al cargar cada página
+  * se destruye al logout
+* La navegación se controla **validando al cargar**, no bloqueando URLs
+
+---
+
+Si en algún momento quieres, el siguiente nivel sería:
+
+* separar lógica en un **auth.js reutilizable**
+* simular **JWT**
+* o ver cómo cambia todo esto **con backend real**
+
+Pero lo que tienes ahora está **bien planteado y correcto** 👌
